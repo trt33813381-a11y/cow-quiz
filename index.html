@@ -544,7 +544,7 @@ body{
 
     <div class="cta-row">
       <button class="btn go" id="rank-home" type="button">🏠 홈으로</button>
-      <button class="btn line" id="rank-clear" type="button">기록 지우기</button>
+      <button class="btn line" id="rank-clear" type="button">내 기록 지우기</button>
     </div>
   </main>
 </div>
@@ -1141,22 +1141,27 @@ function loadScores(){
   return scoresCache;
 }
 
-async function saveScores(rows){
+async function addScore(pts,total,lv){
+  const row = {nick:me, pts, total, lv, score: pts * LV_POINT[lv], at: Date.now()};
+  scoresCache = [row, ...scoresCache];
   if(!db) return;
   try{
-    if(rows.length > scoresCache.length){
-      const newRow = rows[rows.length - 1];
-      await db.collection("scores").add(newRow);
-      scoresCache = rows;
-    }
+    await db.collection("scores").add(row);
   }catch(e){
     console.warn("Firestore 쓰기 실패:", e.message);
   }
 }
-function addScore(pts,total,lv){
-  const rows = loadScores();
-  rows.push({nick:me, pts, total, lv, score: pts * LV_POINT[lv], at: Date.now()});
-  saveScores(rows);
+async function clearMyScores(){
+  scoresCache = scoresCache.filter(r=>r.nick!==me);
+  if(!db) return;
+  try{
+    const qs = await db.collection("scores").where("nick","==",me).get();
+    const batch = db.batch();
+    qs.docs.forEach(d=>batch.delete(d.ref));
+    await batch.commit();
+  }catch(e){
+    console.warn("Firestore 삭제 실패:", e.message);
+  }
 }
 /* 사람마다 최고 기록 한 개만 남겨 순위를 매긴다 */
 function ranking(lvFilter){
@@ -1267,7 +1272,7 @@ function openRank(){
   rankLv = 0;
   drawRank();
   clearArmed = false;
-  $("rank-clear").textContent = "기록 지우기";
+  $("rank-clear").textContent = "내 기록 지우기";
   show("s-rank");
 }
 $("rankbtn").onclick = ()=>{ me ? openRank() : show("s-login"); };
@@ -1275,15 +1280,15 @@ $("go-rank").onclick = openRank;
 $("rank-top").onclick = openRank;
 $("rank-home").onclick = ()=>{ showRecord(); show("s-start"); };
 let clearArmed = false;
-$("rank-clear").onclick = ()=>{
+$("rank-clear").onclick = async ()=>{
   if(!clearArmed){
     clearArmed = true;
     $("rank-clear").textContent = "정말 지울까? 한 번 더!";
     return;
   }
-  saveScores([]);
+  await clearMyScores();
   clearArmed = false;
-  $("rank-clear").textContent = "기록 지우기";
+  $("rank-clear").textContent = "내 기록 지우기";
   drawRank();
   showRecord();
 };
