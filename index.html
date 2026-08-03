@@ -1123,10 +1123,10 @@ async function initFirebase(){
   firebase.initializeApp(window.FIREBASE_CONFIG);
   db = firebase.firestore();
   try{ await db.enablePersistence(); }catch(e){}
-  await loadScores();
+  await loadScoresToFirebase();
 }
 
-async function loadScores(){
+async function loadScoresToFirebase(){
   if(!db) return [];
   try{
     const qs = await db.collection("scores").orderBy("at", "desc").get();
@@ -1136,6 +1136,9 @@ async function loadScores(){
     console.warn("Firestore 읽기 실패:", e.message);
     return scoresCache;
   }
+}
+function loadScores(){
+  return scoresCache;
 }
 
 async function saveScores(rows){
