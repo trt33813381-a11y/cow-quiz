@@ -9,6 +9,17 @@
 <meta property="og:description" content="학생을 위한 주관식 상식 퀴즈. 초등·중고등·어른 난이도별 218문제로 실생활 상식을 채워 보세요." />
 <meta property="og:type" content="website" />
 <title>말랑 상식 퀴즈</title>
+
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#7C5CE0" />
+<link rel="icon" type="image/png" sizes="48x48" href="icons/favicon-48.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="말랑퀴즈" />
 <style>
 /* ══ 색·글꼴 토큰 ═══════════════════════════════════ */
 :root{
@@ -1575,6 +1586,13 @@ $("theme").onclick = ()=>{
   root.setAttribute("data-theme", dark ? "light" : "dark");
   $("theme").textContent = dark ? "🌙" : "☀️";
 };
+
+/* ══ PWA 서비스 워커 ═══════════════════════════════════ */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(console.error);
+  });
+}
 </script>
 </body>
 </html>
