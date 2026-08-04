@@ -1226,6 +1226,7 @@ function signIn(nick){
   w.hidden = true;
   me = name;
   try{ localStorage.setItem("malang-me", me); }catch(e){}
+  if(db) db.collection("logins").add({nick: me, at: Date.now()}).catch(()=>{});
   greet();
   show("s-start");
   beep([[660,.09],[880,.14]]);
@@ -1570,8 +1571,13 @@ function finish(){
 }
 
 /* ══ 시작하기 ═══════════════════════════════════════ */
+function logVisit(){
+  if(!db) return;
+  db.collection("visits").add({at: Date.now(), path: location.pathname}).catch(()=>{});
+}
 async function boot(){
   await initFirebase();
+  logVisit();
   try{ me = localStorage.getItem("malang-me"); }catch(e){}
   if(me){ greet(); show("s-start"); }
   else { drawKnown(); show("s-login"); $("nick").focus(); }

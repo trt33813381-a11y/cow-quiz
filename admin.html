@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>말랑 상식 퀴즈 · 관리자</title>
+<script src="https://www.gstatic.com/firebasejs/11.2.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.2.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
+<style>
+:root{
+  --bg:#F1EFFD; --card:#FFFFFF; --card2:#F8F5FF;
+  --ink:#2E2A46; --ink-soft:#6E6890; --ink-faint:#A49DC4;
+  --line:#E5DFFA; --line-2:#D3CAF2; --drop:#DCD4F7;
+  --grape:#7C5CE0; --grape-d:#5B3CBE; --on-grape:#FFFFFF;
+  --mint:#1FBE8C; --coral:#FF6B84; --sun:#FFC53D;
+  --f-display:"Cafe24 Ssurround","BM JUA_TTF","Jua","Gmarket Sans","Malgun Gothic",system-ui,sans-serif;
+  --f-body:"Pretendard","Malgun Gothic",system-ui,sans-serif;
+  --f-num:"Gmarket Sans","Malgun Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#171432; --card:#241F45; --card2:#2C2653;
+    --ink:#F0ECFF; --ink-soft:#B3ABDC; --ink-faint:#7F76AE;
+    --line:#372F66; --line-2:#443A7C; --drop:#100E24;
+    --grape:#A78BFF; --grape-d:#6F55C4; --on-grape:#1A1533;
+    --mint:#43D8A5; --coral:#FF8B9E; --sun:#FFD466;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding:1.5rem 1rem 4rem}
+h1{font-family:var(--f-display);font-weight:800;font-size:1.4rem;margin:0 0 1.2rem}
+.card{background:var(--card);border:2.5px solid var(--line-2);border-radius:22px;
+  padding:1.4rem;box-shadow:0 5px 0 var(--drop);margin-bottom:1rem}
+.login-box{max-width:340px;margin:4rem auto}
+.login-box p{color:var(--ink-soft);font-size:.9rem;margin:0 0 1rem}
+input{width:100%;border:2.5px solid var(--line-2);border-radius:14px;padding:.7rem .9rem;
+  background:var(--card2);color:var(--ink);font-size:.95rem;margin-bottom:.6rem}
+input:focus{outline:none;border-color:var(--grape)}
+button{cursor:pointer;border:none;border-radius:14px;padding:.7rem 1rem;
+  font-family:var(--f-display);font-weight:800;font-size:.95rem}
+.btn{background:var(--grape);color:var(--on-grape);width:100%}
+.btn:hover{background:var(--grape-d)}
+.ghost{background:transparent;border:2px solid var(--line-2);color:var(--ink-soft);padding:.4rem .8rem;font-size:.82rem}
+.warn{color:var(--coral);font-size:.85rem;min-height:1.2em;margin:0 0 .5rem}
+#dash[hidden], #login[hidden]{display:none}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.8rem;margin-bottom:1rem}
+.stat{background:var(--card);border:2.5px solid var(--line-2);border-radius:18px;
+  padding:1rem;box-shadow:0 4px 0 var(--drop)}
+.stat b{display:block;font-family:var(--f-num);font-weight:800;font-size:1.6rem;color:var(--grape)}
+.stat span{font-size:.8rem;color:var(--ink-soft)}
+.ttl{font-family:var(--f-display);font-weight:800;font-size:1.05rem;margin:0 0 .8rem}
+.chips{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.9rem}
+.chip{border:2px solid var(--line-2);background:var(--card2);border-radius:999px;
+  padding:.3rem .8rem;font-size:.82rem;cursor:pointer;font-family:var(--f-display);font-weight:700}
+.chip.on{background:var(--grape);border-color:var(--grape);color:var(--on-grape)}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th,td{text-align:left;padding:.5rem .5rem;border-bottom:1px solid var(--line)}
+th{color:var(--ink-faint);font-weight:700;font-size:.78rem}
+td.num{font-family:var(--f-num);font-weight:800;color:var(--grape)}
+.tag{display:inline-block;background:var(--card2);border:1.5px solid var(--line-2);
+  border-radius:999px;padding:.1rem .55rem;font-size:.74rem;color:var(--ink-soft)}
+.empty{text-align:center;color:var(--ink-faint);padding:1.2rem 0}
+.scroll{overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <main id="login">
+    <div class="card login-box">
+      <h1>🔐 관리자</h1>
+      <p>말랑 상식 퀴즈 운영 현황을 보려면 로그인하세요.</p>
+      <input id="email" type="email" placeholder="이메일" autocomplete="username" />
+      <input id="pw" type="password" placeholder="비밀번호" autocomplete="current-password" />
+      <p class="warn" id="login-warn"></p>
+      <button class="btn" id="login-btn" type="button">로그인</button>
+    </div>
+  </main>
+
+  <main id="dash" hidden>
+    <div class="topbar">
+      <h1>🐄 말랑 상식 퀴즈 관리자</h1>
+      <button class="ghost" id="logout-btn" type="button">로그아웃</button>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat"><b id="st-visits">–</b><span>전체 방문</span></div>
+      <div class="stat"><b id="st-today">–</b><span>오늘 방문</span></div>
+      <div class="stat"><b id="st-users">–</b><span>가입(로그인) 인원</span></div>
+      <div class="stat"><b id="st-games">–</b><span>완료한 게임 수</span></div>
+    </div>
+
+    <div class="card">
+      <p class="ttl">🏆 전체 랭킹</p>
+      <div class="chips" id="rank-filter"></div>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>#</th><th>닉네임</th><th>난이도</th><th>점수</th><th>정답</th><th>시각</th></tr></thead>
+          <tbody id="rank-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="ttl">📋 최근 활동</p>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>시각</th><th>내용</th></tr></thead>
+          <tbody id="activity-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const LV_LABEL = {1:"초등", 2:"중·고등", 3:"어른"};
+
+firebase.initializeApp(window.FIREBASE_CONFIG);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+function fmt(ts){
+  const d = new Date(ts);
+  return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
+
+$("login-btn").onclick = ()=>{
+  const w = $("login-warn");
+  w.textContent = "";
+  auth.signInWithEmailAndPassword($("email").value.trim(), $("pw").value)
+    .catch(e=>{ w.textContent = "로그인 실패: 이메일 또는 비밀번호를 확인해 주세요."; });
+};
+[$("email"), $("pw")].forEach(el=>{
+  el.addEventListener("keydown", e=>{ if(e.key==="Enter") $("login-btn").click(); });
+});
+$("logout-btn").onclick = ()=> auth.signOut();
+
+let rankLv = 0;
+[[0,"전체"],[1,"초등"],[2,"중·고등"],[3,"어른"]].forEach(([k,label])=>{
+  const c = document.createElement("button");
+  c.type = "button"; c.className = "chip" + (k===0 ? " on" : "");
+  c.textContent = label;
+  c.onclick = ()=>{
+    rankLv = k;
+    [...$("rank-filter").children].forEach(x=>x.classList.remove("on"));
+    c.classList.add("on");
+    drawRanking();
+  };
+  $("rank-filter").appendChild(c);
+});
+
+let allScores = [];
+let allVisits = [];
+let allLogins = [];
+
+function drawRanking(){
+  const best = new Map();
+  allScores.filter(r=> rankLv===0 || r.lv===rankLv).forEach(r=>{
+    const key = r.nick + "|" + r.lv;
+    const cur = best.get(key);
+    if(!cur || r.score > cur.score) best.set(key, r);
+  });
+  const rows = [...best.values()].sort((a,b)=> b.score - a.score);
+  const tb = $("rank-body");
+  tb.innerHTML = "";
+  if(!rows.length){
+    tb.innerHTML = `<tr><td colspan="6" class="empty">기록이 없습니다.</td></tr>`;
+    return;
+  }
+  rows.slice(0,100).forEach((r,i)=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${i+1}</td><td>${esc(r.nick)}</td>
+      <td><span class="tag">${LV_LABEL[r.lv]||"?"}</span></td>
+      <td class="num">${r.score}</td><td>${r.pts}/${r.total}</td><td>${fmt(r.at)}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function esc(s){
+  return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+}
+
+function drawActivity(){
+  const events = [
+    ...allLogins.map(r=>({at:r.at, text:`👋 <b>${esc(r.nick)}</b> 님이 로그인했어요`})),
+    ...allScores.map(r=>({at:r.at, text:`✅ <b>${esc(r.nick)}</b> 님이 ${LV_LABEL[r.lv]||"?"} 난이도를 풀고 <b>${r.score}점</b>을 얻었어요 (${r.pts}/${r.total})`})),
+  ].sort((a,b)=> b.at - a.at).slice(0,50);
+  const tb = $("activity-body");
+  tb.innerHTML = "";
+  if(!events.length){
+    tb.innerHTML = `<tr><td colspan="2" class="empty">활동 기록이 없습니다.</td></tr>`;
+    return;
+  }
+  events.forEach(e=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${fmt(e.at)}</td><td>${e.text}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function drawStats(){
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+  $("st-visits").textContent = allVisits.length;
+  $("st-today").textContent = allVisits.filter(v=>v.at >= todayStart.getTime()).length;
+  $("st-users").textContent = new Set(allLogins.map(l=>l.nick)).size;
+  $("st-games").textContent = allScores.length;
+}
+
+async function loadAll(){
+  const [visitsQs, loginsQs, scoresQs] = await Promise.all([
+    db.collection("visits").get(),
+    db.collection("logins").get(),
+    db.collection("scores").get(),
+  ]);
+  allVisits = visitsQs.docs.map(d=>d.data());
+  allLogins = loginsQs.docs.map(d=>d.data());
+  allScores = scoresQs.docs.map(d=>d.data());
+  drawStats();
+  drawRanking();
+  drawActivity();
+}
+
+auth.onAuthStateChanged(user=>{
+  if(user){
+    $("login").hidden = true;
+    $("dash").hidden = false;
+    loadAll();
+  }else{
+    $("login").hidden = false;
+    $("dash").hidden = true;
+  }
+});
+</script>
+</body>
+</html>
