@@ -378,6 +378,23 @@ body{
   .nav .btn.prev{flex:1 1 100%;order:3}
   .top h1{font-size:1.1rem}
 }
+
+/* ══ 가로 모드(짧은 화면 높이) ═══════════════════════ */
+@media (max-height:500px) and (orientation:landscape){
+  .wrap{gap:.6rem;padding-bottom:1.5rem}
+  .top{padding:.5rem 0 .4rem}
+  .top .cow{width:30px;height:35px}
+  .top h1{font-size:1.05rem}
+  .icon{width:32px;height:32px;font-size:.9rem}
+  .card{padding:.8rem;gap:.6rem;border-radius:20px}
+  .mascot{gap:.5rem}
+  .cow{width:52px;height:62px}
+  .bubble{font-size:.85rem;padding:.5rem .7rem}
+  .ttl.big{font-size:1.05rem;margin:.4rem 0 0}
+  .ask{font-size:1.1rem;line-height:1.35}
+  .shape{font-size:.85rem}
+  .verdict{padding:.6rem}
+}
 </style>
 <script src="https://www.gstatic.com/firebasejs/11.2.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore-compat.js"></script>
