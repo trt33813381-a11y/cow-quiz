@@ -846,13 +846,16 @@ function lev(a,b){
   }
   return prev[n];
 }
+function isNumeric(s){ return s.length>0 && /^[0-9]+$/.test(s); }
 /* "exact" | "close" | "wrong" */
 function grade(input, accepts){
   const mine = norm(input);
   if(!mine) return "wrong";
   const list = accepts.map(norm);
   if(list.includes(mine)) return "exact";
+  /* 숫자 정답은 오타 허용 없이 정확히 일치해야 정답이다 — 한 자리만 달라도 다른 값이 된다 */
   for(const a of list){
+    if(isNumeric(a)) continue;
     if(a.length>=4 && lev(mine,a)<=1) return "close";
     if(a.length>=6 && lev(mine,a)<=2) return "close";
   }
